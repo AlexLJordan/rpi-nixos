@@ -44,13 +44,12 @@
     vsftpd = {
       enable = true;
       writeEnable = true;
-      chrootlocalUser = true;
       localUsers = true;
     };
     
     # dns and dhcp server config:
     dnsmasq = {
-      enable = true;
+      enable = false;
     };
     
     # caldav server config:
@@ -76,4 +75,7 @@
       hashedPassword = "$6$03LKsca5YVE$SmE4FazzOcRxNc6O0KCgaxOvw1yIGeXHMo.xY5yKvppkdwYx18K/CzMcpPmuVx3L7kidXgzMTgmt.uy315AO61";
     };
   };
+  networking.firewall.allowedTCPPorts = [ 21 ];
+  networking.firewall.connectionTrackingModules = [ "ftp" ];
+  networking.firewall.autoLoadConntrackHelpers = true;
 }
