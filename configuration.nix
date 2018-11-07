@@ -24,14 +24,56 @@
 
   environment.systemPackages = 
   [ pkgs.emacs
-    pkgs.openssh
-    pkgs.vsftpd
-    pkgs.dnsmasq
     pkgs.git
   ];
 
-  services.sshd.enable = true;
-  #services.vsftpd.enable = true;
-  #services.dnsmasq.enable = true;
 
+  services = {
+  
+    # ssh server config:
+    sshd = {
+      enable = true;
+      openssh.authorizedKeys = [
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0mHoxuNITXYrGkI4ryeVNVkXRphJzgZk4j4cQzmNejmiXKfeAt66RuSY40hLyM8ZtBjPpAEe9FhZsLQkylV69xMnyMp6HIHJDeAKzQaaebzDAjXAHmmhf+IPWqEq1V7LDWCMQ1t2XMttFANOyb3rivI8iGTgUdyfGuCcu8MnCRheQOag5LH/IVZ60m4Vh0/7XPajcO+D1E6LvpHBDkxR9n630nezUgrvgWaIYbs/Hk58la/V8AEFR5kAe/R3noH34iDM2uE01ONOzsjyBocjMKHSQbTD8855hGRavfhkycID4gDNJ5o++cMvW3dtRB1hWPURRKXcnkMTxbv6lokiN user@ssh"
+	"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHU0/GRtRZZ+pGFvEy9FhdeP7qJqOWF3g4r67VgF6xXGkJurVrPeOWLYngQe51UzYSGNRoh2z4cH2H6jz+B4rbHDsflK4kFumckaP3Uwk5F6bGzxYHFmFEDLYsHruSntopkR1jFEGW6+3RqAh4qTwhhwOjaN1RMP5FwmoYYtU4uR9qAWVxcZFz7BdnuNH36ubPfOvsAKDQWKmb8p4KaVZyKHvltIKsqXu7okGeA3cuNFlc086gph/Tzyi+At2yhumsZ4jZlILqPGD/zBHZ8glnN8LlziYVXsK0p+/Jwy6PjOnexwj6hd5rO4fFUBEkok2zXpzSNDT6HpGGI70gVfJp user@ssh"
+      ];
+      passwordAuthentication = false;
+    };
+    
+    # ftp server config:
+    vsftpd = {
+      enable = true;
+      writeEnable = true;
+      chrootlocalUser = true;
+      localUsers = true;
+    };
+    
+    # dns and dhcp server config:
+    dnsmasq = {
+      enable = true;
+    };
+    
+    # caldav server config:
+    radicale = {
+      enable = true;
+    };
+  };
+  
+  # FTP users
+  users.users = {
+    alex = {
+      isNormalUser = true;
+      home = "/home/alex";
+      description = "Alex' FTP User";
+      extraGroups = [ "ftp" ];
+      hashedPassword = "$6$G9Ssf8ipbaM5gv$a53/6ueFM5GBwShE/0KeKrlDgnZusaBw5rDzcgoHsmGZFBpEgB9d9wePKonDr3XKQOWjyQRiSOm2wAsEeYZnO/";
+    };
+    mara = {
+      isNormalUser = true;
+      home = "/home/mara";
+      description = "Maras FTP User";
+      extraGroups = [ "ftp" ];
+      hashedPassword = "$6$03LKsca5YVE$SmE4FazzOcRxNc6O0KCgaxOvw1yIGeXHMo.xY5yKvppkdwYx18K/CzMcpPmuVx3L7kidXgzMTgmt.uy315AO61";
+    };
+  };
 }
