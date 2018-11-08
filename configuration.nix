@@ -25,6 +25,7 @@
   environment.systemPackages = 
   [ pkgs.emacs
     pkgs.git
+    pkgs.tmux
   ];
 
 
@@ -55,6 +56,27 @@
     # caldav server config:
     radicale = {
       enable = true;
+      config = ''
+        [server]
+	hosts = 0.0.0.0:5232
+	[auth]
+	type = htpasswd
+	htpasswd_filename = /etc/nixos/htpasswd
+	# encryption method used in the htpasswd file
+	htpasswd_encryption = bcrypt
+      '';
+    };
+
+    # syncthing server config:
+    syncthing = {
+      enable = true;
+    };
+
+    # emacs server config:
+    emacs = {
+      enable = true;
+      defaultEditor = true;
+      package = import /etc/nixos/emacs.d { pkgs = pkgs; };
     };
   };
   
@@ -75,7 +97,8 @@
       hashedPassword = "$6$03LKsca5YVE$SmE4FazzOcRxNc6O0KCgaxOvw1yIGeXHMo.xY5yKvppkdwYx18K/CzMcpPmuVx3L7kidXgzMTgmt.uy315AO61";
     };
   };
-  networking.firewall.allowedTCPPorts = [ 21 ];
+  # enable ports:
+  networking.firewall.allowedTCPPorts = [ 21 5232 ];
   networking.firewall.connectionTrackingModules = [ "ftp" ];
   networking.firewall.autoLoadConntrackHelpers = true;
 }
