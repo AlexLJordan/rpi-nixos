@@ -1,6 +1,8 @@
 { config, pkgs, lib, ... }:
 {
 
+  imports = [ ./mysyncthing.nix ];
+
   # NixOS wants to enable GRUB by default
   boot.loader.grub.enable = false;
   # Enables the generation of /boot/extlinux/extlinux.conf
@@ -61,20 +63,21 @@
 	hosts = 0.0.0.0:5232
 	[auth]
 	type = htpasswd
-	htpasswd_filename = /etc/nixos/htpasswd
+	htpasswd_filename = /etc/nixos/htaccess
 	# encryption method used in the htpasswd file
 	htpasswd_encryption = bcrypt
       '';
     };
 
     # syncthing server config:
-    syncthing = {
+    mysyncthing = {
       enable = true;
+      guiAddress = "0.0.0.0:8384";
     };
 
     # emacs server config:
     emacs = {
-      enable = true;
+      enable = false;
       defaultEditor = true;
       package = import /etc/nixos/emacs.d { pkgs = pkgs; };
     };
@@ -98,7 +101,7 @@
     };
   };
   # enable ports:
-  networking.firewall.allowedTCPPorts = [ 21 5232 ];
+  networking.firewall.allowedTCPPorts = [ 21 5232 8384 ];
   networking.firewall.connectionTrackingModules = [ "ftp" ];
   networking.firewall.autoLoadConntrackHelpers = true;
 }
