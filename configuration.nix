@@ -1,4 +1,5 @@
 { config, pkgs, lib, ... }:
+
 {
 
   imports = [ ./mysyncthing.nix ];
@@ -12,29 +13,31 @@
 
   # !!! Needed for the virtual console to work on the RPi 3, as the default of 16M doesn't seem to be enough.
   # If X.org behaves weirdly (I only saw the cursor) then try increasing this to 256M.
-  boot.kernelParams = ["cma=32M"];
+  boot.kernelParams = [ "cma=32M" ];
 
   # File systems configuration
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-label/NIXOS_SD";
-			fsType = "ext4";
+	    fsType = "ext4";
 	  };
   };
 
   swapDevices = [ { device = "/swapfile"; size = 1024; } ];
 
-  environment.systemPackages =
-  [ pkgs.emacs
+  environment.systemPackages = [
+    pkgs.emacs
     pkgs.git
     pkgs.tmux
   ];
 
+  networking.wireless.enable = true;
   networking.hostName = "pixos";
-  networking.nameservers = [ 51.15.98.97,
-                             8.8.8.8,
-                             8.8.1.1
-                           ];
+  networking.nameservers = [
+    "51.15.98.97"
+    "8.8.8.8"
+    "8.8.1.1"
+  ];
 
   services = {
 
@@ -51,7 +54,10 @@
 
     # hostAP server config:
     hostap = {
-      test
+      enable = false;
+      interface = "test";
+      ssid = "pixOS AP";
+      wpa_passphrase = "rickroll64"
     }
 
     # # ftp server config:
@@ -112,7 +118,11 @@
     };
   };
   # enable ports:
-  networking.firewall.allowedTCPPorts = [ 21 5232 8384 ];
+  networking.firewall.allowedTCPPorts = [
+    21
+    5232
+    8384
+  ];
   networking.firewall.connectionTrackingModules = [ "ftp" ];
   networking.firewall.autoLoadConntrackHelpers = true;
 }
