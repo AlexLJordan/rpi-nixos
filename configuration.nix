@@ -6,10 +6,37 @@
     ./mysyncthing.nix
   ];
 
-  # NixOS wants to enable GRUB by default
-  boot.loader.grub.enable = false;
-  # Enables the generation of /boot/extlinux/extlinux.conf
-  boot.loader.generic-extlinux-compatible.enable = true;
+  ### Hardware ###
+  hardware.enableRedistributableFirmware = true;
+  hardware.firmware = [
+    (pkgs.stdenv.mkDerivation {
+      name = "broadcom-rpi3bplus-extra";
+      src = pkgs.fetchurl {
+        url = "https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/b518de4/brcm/brcmfmac43455-sdio.txt";
+        sha256 = "0r4bvwkm3fx60bbpwd83zbjganjnffiq1jkaj0h20bwdj9ysawg9";
+      };
+      phases = [ "installPhase" ];
+      installPhase = ''
+        mkdir -p $out/lib/firmware/brcm
+        cp $src $out/lib/firmware/brcm/brcmfmac43455-sdio.txt
+      '';
+    })
+  ];
+
+  ### Booting ###
+  # # NixOS wants to enable GRUB by default
+  # boot.loader.grub.enable = false;
+  # # Enables the generation of /boot/extlinux/extlinux.conf
+  # boot.loader.generic-extlinux-compatible.enable = true;
+
+  # Use the GRUB 2 boot loader.
+  boot.loader.grub.enable = true;
+  boot.loader.grub.version = 2;
+  # boot.loader.grub.efiSupport = true;
+  # boot.loader.grub.efiInstallAsRemovable = true;
+  # boot.loader.efi.efiSysMountPoint = "/boot/efi";
+  # Define on which hard drive you want to install Grub.
+  boot.loader.grub.device = "/dev/disk/by-uuid/2178-694E"; # or "nodev" for efi only
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
@@ -17,15 +44,28 @@
   # If X.org behaves weirdly (I only saw the cursor) then try increasing this to 256M.
   boot.kernelParams = [ "cma=32M" ];
 
-  # File systems configuration
-  fileSystems = {
-    "/" = {
-      device = "/dev/disk/by-label/NIXOS_SD";
-	    fsType = "ext4";
-	  };
-  };
+  # # File systems configuration
+  # fileSystems = {
+  #   "/" = {
+  #     device = "/dev/disk/by-label/NIXOS_SD";
+	#     fsType = "ext4";
+	#   };
+  # };
 
   swapDevices = [ { device = "/swapfile"; size = 1024; } ];
+
+  ### System settings ###
+  time.timeZone = "Europe/Berlin";
+  system.autoUpgrade = {
+    enable = true;
+    channel = "https://nixos.org/channels/nixos-unstable/";
+  };
+
+  # This value determines the NixOS release with which your system is to be
+  # compatible, in order to avoid breaking some software such as database
+  # servers. You should change this only after NixOS release notes say you
+  # should.
+  system.stateVersion = "18.09"; # Did you read the comment?
 
   environment.systemPackages = [
     pkgs.emacs
@@ -33,14 +73,45 @@
     pkgs.tmux
   ];
 
-  networking.wireless.enable = true;
+  ### Networking ###
+  # basic network settings
   networking.hostName = "pixos";
   networking.nameservers = [
     "51.15.98.97"
     "8.8.8.8"
     "8.8.1.1"
   ];
+  networking.wireless.enable = true;
 
+  # enable ports of some services:
+  networking.firewall.allowedTCPPorts = [
+    21
+    5232
+    8384
+  ];
+  networking.firewall.connectionTrackingModules = [ "ftp" ];
+  networking.firewall.autoLoadConntrackHelpers = true;
+
+  ### Users ###
+  # FTP users
+  users.users = {
+    alex = {
+      isNormalUser = true;
+      home = "/home/alex";
+      description = "Alex' FTP User";
+      extraGroups = [ "ftp" ];
+      hashedPassword = "$6$G9Ssf8ipbaM5gv$a53/6ueFM5GBwShE/0KeKrlDgnZusaBw5rDzcgoHsmGZFBpEgB9d9wePKonDr3XKQOWjyQRiSOm2wAsEeYZnO/";
+    };
+    mara = {
+      isNormalUser = true;
+      home = "/home/mara";
+      description = "Maras FTP User";
+      extraGroups = [ "ftp" ];
+      hashedPassword = "$6$03LKsca5YVE$SmE4FazzOcRxNc6O0KCgaxOvw1yIGeXHMo.xY5yKvppkdwYx18K/CzMcpPmuVx3L7kidXgzMTgmt.uy315AO61";
+    };
+  };
+
+  ### Services ###
   services = {
 
     # ssh server config:
@@ -54,13 +125,20 @@
       passwordAuthentication = false;
     };
 
+    # emacs server config:
+    emacs = {
+      enable = false;
+      defaultEditor = true;
+      package = import /etc/nixos/emacs.d { pkgs = pkgs; };
+    };
+
     # hostAP server config:
     hostapd = {
       enable = false;
       interface = "test";
       ssid = "pixOS AP";
       wpa_passphrase = "rickroll64"
-    }
+    };
 
     # # ftp server config:
     # vsftpd = {
@@ -93,38 +171,5 @@
     #   enable = true;
     #   guiAddress = "0.0.0.0:8384";
     # };
-
-    # emacs server config:
-    emacs = {
-      enable = false;
-      defaultEditor = true;
-      package = import /etc/nixos/emacs.d { pkgs = pkgs; };
-    };
   };
-
-  # FTP users
-  users.users = {
-    alex = {
-      isNormalUser = true;
-      home = "/home/alex";
-      description = "Alex' FTP User";
-      extraGroups = [ "ftp" ];
-      hashedPassword = "$6$G9Ssf8ipbaM5gv$a53/6ueFM5GBwShE/0KeKrlDgnZusaBw5rDzcgoHsmGZFBpEgB9d9wePKonDr3XKQOWjyQRiSOm2wAsEeYZnO/";
-    };
-    mara = {
-      isNormalUser = true;
-      home = "/home/mara";
-      description = "Maras FTP User";
-      extraGroups = [ "ftp" ];
-      hashedPassword = "$6$03LKsca5YVE$SmE4FazzOcRxNc6O0KCgaxOvw1yIGeXHMo.xY5yKvppkdwYx18K/CzMcpPmuVx3L7kidXgzMTgmt.uy315AO61";
-    };
-  };
-  # enable ports:
-  networking.firewall.allowedTCPPorts = [
-    21
-    5232
-    8384
-  ];
-  networking.firewall.connectionTrackingModules = [ "ftp" ];
-  networking.firewall.autoLoadConntrackHelpers = true;
 }
