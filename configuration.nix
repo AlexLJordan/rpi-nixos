@@ -1,8 +1,10 @@
 { config, pkgs, lib, ... }:
 
 {
-
-  imports = [ ./mysyncthing.nix ];
+  imports = [
+    ./hardware-configuration.nix
+    ./mysyncthing.nix
+  ];
 
   # NixOS wants to enable GRUB by default
   boot.loader.grub.enable = false;
