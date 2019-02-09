@@ -53,7 +53,7 @@
     };
 
     # hostAP server config:
-    hostap = {
+    hostapd = {
       enable = false;
       interface = "test";
       ssid = "pixOS AP";
