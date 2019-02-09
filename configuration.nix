@@ -137,7 +137,7 @@
       enable = false;
       interface = "test";
       ssid = "pixOS AP";
-      wpa_passphrase = "rickroll64"
+      wpaPassphrase = "rickroll64";
     };
 
     # # ftp server config:
